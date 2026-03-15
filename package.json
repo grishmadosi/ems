@@ -1,0 +1,26 @@
+{
+  "name": "ems",
+  "version": "1.0.0",
+  "description": "A secure web-based election management platform that allows administrators to create polls and voters to cast votes digitally. The system focuses on **transparency, fairness, and vote integrity**, ensuring that each voter can vote only once and that all votes are recorded securely.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grishmadosi/ems.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/grishmadosi/ems/issues"
+  },
+  "homepage": "https://github.com/grishmadosi/ems#readme",
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^8.0.0"
+  }
+}
