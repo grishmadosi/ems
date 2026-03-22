@@ -2,15 +2,20 @@
   "name": "ems",
   "version": "1.0.0",
   "description": "A secure web-based election management platform that allows administrators to create polls and voters to cast votes digitally. The system focuses on **transparency, fairness, and vote integrity**, ensuring that each voter can vote only once and that all votes are recorded securely.",
-  "main": "index.js",
+  "main": "server/server.js",
   "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "build": "cd client && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grishmadosi/ems.git"
   },
-  "keywords": [],
+  "keywords": ["mern", "election", "voting"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -18,6 +23,9 @@
     "url": "https://github.com/grishmadosi/ems/issues"
   },
   "homepage": "https://github.com/grishmadosi/ems#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
