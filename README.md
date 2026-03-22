@@ -103,19 +103,38 @@ ems/
 
 Make sure the following are installed on your machine:
 
-| Tool | Version | Install |
+| Tool | Version | Download |
 |---|---|---|
 | Node.js | >= 18 | https://nodejs.org |
 | PostgreSQL | >= 14 | https://www.postgresql.org/download |
 | Git | any | https://git-scm.com |
 
-On macOS you can install via Homebrew:
+### Installation by OS
 
+**macOS** (Homebrew)
 ```bash
 brew install node
 brew install postgresql@16
 brew services start postgresql@16
 ```
+
+**Linux (Ubuntu / Debian)**
+```bash
+# Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# PostgreSQL
+sudo apt-get install -y postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+**Windows**
+- Download and run the Node.js installer from https://nodejs.org
+- Download and run the PostgreSQL installer from https://www.postgresql.org/download/windows
+  - During installation, set a password for the `postgres` user and keep port `5432`
+- Git: https://git-scm.com/download/win
 
 ---
 
@@ -332,12 +351,29 @@ CREATE TABLE vote (
 
 ## Troubleshooting
 
+### PostgreSQL not starting
+
+| OS | Command |
+|---|---|
+| macOS | `brew services start postgresql@16` |
+| Linux | `sudo systemctl start postgresql` |
+| Windows | Open Services -> find PostgreSQL -> Start, or run `pg_ctl start` |
+
+### `psql: command not found`
+
+| OS | Fix |
+|---|---|
+| macOS | `export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"` |
+| Linux | `sudo apt-get install postgresql-client` |
+| Windows | Add `C:\Program Files\PostgreSQL\16\bin` to your system PATH |
+
+### Other common issues
+
 | Problem | Fix |
 |---|---|
-| `psql: command not found` | Add PostgreSQL bin to PATH: `export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"` |
-| `FATAL: role "postgres" does not exist` | Run `createuser -s postgres` |
+| `FATAL: role "postgres" does not exist` | Run `createuser -s postgres` (macOS/Linux) |
 | `database "ems_db" does not exist` | Run `psql -U postgres -c "CREATE DATABASE ems_db;"` |
-| `Connection refused` on port 5432 | Start PostgreSQL: `brew services start postgresql@16` |
+| `Connection refused` on port 5432 | Make sure PostgreSQL service is running (see above) |
 | JWT errors | Make sure `JWT_SECRET` is set in `server/.env` |
 | CORS errors | Check `CLIENT_URL` in `server/.env` matches your frontend port |
 
