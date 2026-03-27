@@ -1,7 +1,10 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const pool = require('./config/db');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const pollRoutes = require("./routes/pollRoutes");
+const positionRoutes = require("./routes/positionRoutes");
+const candidateRoutes = require("./routes/candidateRoutes");
 
 dotenv.config();
 
@@ -32,16 +35,14 @@ app.use(
   })
 );
 
-// ── Database ──────────────────────────────────────────────────────────────────
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ems';
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log('✅  MongoDB connected'))
-  .catch((err) => {
-    console.error('❌  MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+// ── Database (PostgreSQL) ─────────────────────────────────
+pool.query("SELECT NOW()", (err, res) => {
+  if (err) {
+    console.error("❌ DB Error:", err);
+  } else {
+    console.log("✅ PostgreSQL connected:", res.rows[0]);
+  }
+});
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 // Health check
@@ -49,14 +50,17 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use("/api/polls", pollRoutes);
+app.use("/api/positions", positionRoutes);
+app.use("/api/candidates", candidateRoutes);
 // TODO: import and mount your route files here, e.g.:
 // const employeeRoutes = require('./routes/employees');
 // app.use('/api/employees', employeeRoutes);
-
 // 404 fallback
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
+
 
 // Global error handler
 app.use((err, _req, res, _next) => {
