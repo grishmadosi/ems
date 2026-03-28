@@ -103,3 +103,16 @@ CREATE TABLE IF NOT EXISTS audit_log (
 
 CREATE INDEX idx_audit_log_created_at ON audit_log(created_at);
 CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
+
+-- ============================================================================
+-- NOMINATIONS TABLE (standalone candidate nominations portal)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS nominations (
+    id SERIAL PRIMARY KEY,
+    candidate_name VARCHAR(255) NOT NULL,
+    party_name VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL,
+    description TEXT,
+    photo_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

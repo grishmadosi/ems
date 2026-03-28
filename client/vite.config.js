@@ -10,7 +10,7 @@ export default defineConfig({
     proxy: {
       // All requests to /api/* are forwarded to Express — no CORS issues in dev
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
       },

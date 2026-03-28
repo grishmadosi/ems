@@ -66,6 +66,10 @@ app.get('/api/health', (req, res) => {
 // app.use('/api/candidates', candidateRoutes);
 // app.use('/api/votes', voteRoutes);
 
+// Nominations
+const nominationsRoutes = require('./routes/nominations');
+app.use('/api/nominations', nominationsRoutes);
+
 // 404 fallback
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });

@@ -48,6 +48,22 @@ export default function CandidateNomination() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const nameInputRef = useRef(null)
 
+  // Load existing nominations from the database on mount
+  useEffect(() => {
+    const fetchNominations = async () => {
+      try {
+        const res = await fetch('/api/nominations')
+        if (!res.ok) throw new Error('Failed to load nominations')
+        const data = await res.json()
+        setCandidates(data)
+      } catch (err) {
+        console.error('Error loading nominations:', err)
+        setToast('Failed to load nominations from server')
+      }
+    }
+    fetchNominations()
+  }, [])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -90,37 +106,56 @@ export default function CandidateNomination() {
 
     setSubmitting(true)
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    try {
+      const res = await fetch('/api/nominations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidate_name: form.name.trim(),
+          party_name: form.party.trim(),
+          position: form.position,
+          description: form.description.trim() || null,
+          photo_url: form.photoUrl.trim() || null,
+        }),
+      })
 
-    const newCandidate = {
-      id: Date.now(),
-      name: form.name.trim(),
-      party: form.party.trim(),
-      position: form.position,
-      description: form.description.trim(),
-      photoUrl: form.photoUrl.trim(),
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Server error')
+      }
+
+      const saved = await res.json()
+      setCandidates((prev) => [saved, ...prev])
+      setForm(INITIAL_FORM)
+      setErrors({})
+      setToast(`${saved.candidate_name} nominated successfully`)
+      nameInputRef.current?.focus()
+    } catch (err) {
+      console.error('Nomination error:', err)
+      setToast(`Error: ${err.message}`)
+    } finally {
+      setSubmitting(false)
     }
-
-    setCandidates((prev) => [newCandidate, ...prev])
-    setForm(INITIAL_FORM)
-    setErrors({})
-    setSubmitting(false)
-    setToast(`${newCandidate.name} nominated successfully`)
-    nameInputRef.current?.focus()
   }
 
-  const handleDelete = (id) => {
-    setCandidates((prev) => prev.filter((c) => c.id !== id))
-    setDeleteConfirm(null)
-    setToast('Candidate removed')
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/nominations/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      setCandidates((prev) => prev.filter((c) => c.id !== id))
+      setDeleteConfirm(null)
+      setToast('Candidate removed')
+    } catch (err) {
+      console.error('Delete error:', err)
+      setToast('Error: Could not remove candidate')
+    }
   }
 
   const filteredCandidates = candidates.filter((c) => {
     const q = search.toLowerCase()
     return (
-      c.name.toLowerCase().includes(q) ||
-      c.party.toLowerCase().includes(q) ||
+      c.candidate_name.toLowerCase().includes(q) ||
+      c.party_name.toLowerCase().includes(q) ||
       c.position.toLowerCase().includes(q)
     )
   })
@@ -333,10 +368,10 @@ export default function CandidateNomination() {
                   className="candidate-card"
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
-                  {candidate.photoUrl ? (
+                  {candidate.photo_url ? (
                     <img
-                      src={candidate.photoUrl}
-                      alt={candidate.name}
+                      src={candidate.photo_url}
+                      alt={candidate.candidate_name}
                       className="candidate-avatar"
                       onError={(e) => {
                         e.target.style.display = 'none'
@@ -345,17 +380,17 @@ export default function CandidateNomination() {
                       }}
                     />
                   ) : null}
-                  {!candidate.photoUrl && (
+                  {!candidate.photo_url && (
                     <div className="candidate-avatar-placeholder">
-                      {getInitials(candidate.name)}
+                      {getInitials(candidate.candidate_name)}
                     </div>
                   )}
 
                   <div className="candidate-info">
-                    <div className="candidate-name">{candidate.name}</div>
+                    <div className="candidate-name">{candidate.candidate_name}</div>
                     <div className="candidate-meta">
                       <span className="candidate-tag party">
-                        {candidate.party}
+                        {candidate.party_name}
                       </span>
                       <span className="candidate-tag position">
                         {candidate.position}
