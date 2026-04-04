@@ -8,65 +8,73 @@ dotenv.config();
 
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors());
+// -- Middleware ----------------------------------------------------------------
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ── Database ──────────────────────────────────────────────────────────────────
-// PostgreSQL connection pool
+// -- Database -----------------------------------------------------------------
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'ems_db',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  host:     process.env.DB_HOST     || 'localhost',
+  port:     process.env.DB_PORT     || 5432,
+  database: process.env.DB_NAME     || 'ems_db',
+  user:     process.env.DB_USER     || 'postgres',
+  password: process.env.DB_PASSWORD || '',
 });
 
-// Initialize the database helper module
 db.initializePool(pool);
 
-// Test database connection
 pool.on('error', (err) => {
-  console.error('❌ Unexpected error on idle client', err);
+  console.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('❌ PostgreSQL connection error:', err.message);
+    console.error('PostgreSQL connection error:', err.message);
     process.exit(1);
   } else {
-    console.log('✅ PostgreSQL connected successfully');
+    console.log('PostgreSQL connected successfully');
     release();
   }
 });
 
-// Export pool for use in routes/controllers
 app.locals.db = pool;
 
-// ── Routes ────────────────────────────────────────────────────────────────────
+// -- Routes -------------------------------------------------------------------
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ 
+app.get('/api/health', (_req, res) => {
+  res.json({
     message: 'Server is running',
     database: 'PostgreSQL',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
-// TODO: import and mount your route files here, e.g.:
-// const authRoutes = require('./routes/auth');
-// const pollRoutes = require('./routes/polls');
-// const candidateRoutes = require('./routes/candidates');
-// const voteRoutes = require('./routes/votes');
-//
-// app.use('/api/auth', authRoutes);
-// app.use('/api/polls', pollRoutes);
-// app.use('/api/candidates', candidateRoutes);
-// app.use('/api/votes', voteRoutes);
+// Auth
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
 
-// Nominations
+// Admin
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
+// Elections
+const electionRoutes = require('./routes/elections');
+app.use('/api/elections', electionRoutes);
+
+// Candidate applications (mounted under /api/elections/:id/...)
+const candidateApplyRoutes = require('./routes/candidateApply');
+app.use('/api/elections', candidateApplyRoutes);
+
+// Voting
+const votingRoutes = require('./routes/voting');
+app.use('/api/vote', votingRoutes);
+
+// Legacy nominations (backward compat)
 const nominationsRoutes = require('./routes/nominations');
 app.use('/api/nominations', nominationsRoutes);
 
@@ -75,39 +83,38 @@ app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
+// Error handler
+app.use((err, _req, res, _next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+// -- Start --------------------------------------------------------------------
+const PORT = process.env.PORT || 5001;
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${server.address().port}`);
-  console.log(`📊 Database: ${process.env.DB_NAME || 'ems_db'} (PostgreSQL)`);
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on http://localhost:${server.address().port}`);
+  console.log(`Database: ${process.env.DB_NAME || 'ems_db'} (PostgreSQL)`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     const fallback = Number(PORT) + 1;
-    console.warn(`⚠️ Port ${PORT} in use – trying ${fallback}...`);
+    console.warn(`Port ${PORT} in use - trying ${fallback}...`);
     server.listen(fallback, () => {
-      console.log(`🚀 Server running on http://localhost:${fallback}`);
+      console.log(`Server running on http://localhost:${fallback}`);
     });
   } else {
     throw err;
   }
 });
 
-// Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
+  console.log('\nShutting down gracefully...');
   pool.end();
   server.close(() => {
-    console.log('✅ Server closed');
+    console.log('Server closed');
     process.exit(0);
   });
 });

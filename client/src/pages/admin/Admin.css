@@ -1,0 +1,168 @@
+.admin-page {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Voter form */
+.voter-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.voter-form-row .form-group {
+  flex: 1;
+}
+
+.voter-form-row .btn {
+  flex-shrink: 0;
+  height: 41px;
+}
+
+/* Email preview link */
+.email-preview-link {
+  font-size: 0.78rem;
+  color: var(--info);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Election form */
+.election-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.positions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.position-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.position-row .form-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.position-row .form-input:focus {
+  box-shadow: none;
+}
+
+.position-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition-fast);
+  display: flex;
+}
+
+.position-remove:hover {
+  color: var(--danger);
+}
+
+/* Election card in list */
+.election-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.election-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-base);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.election-item:hover {
+  border-color: var(--accent-border);
+}
+
+.election-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.election-item-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.election-item-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.election-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Results */
+.results-section {
+  margin-top: 16px;
+}
+
+.results-position {
+  margin-bottom: 20px;
+}
+
+.results-position h3 {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.results-candidate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.results-candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.results-candidate-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.results-candidate-party {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
