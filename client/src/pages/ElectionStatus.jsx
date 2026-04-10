@@ -7,6 +7,10 @@ const ElectionStatus = () => {
   const [currentTime, setCurrentTime] = useState("");
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // New States for Hosting
+  const [isHosting, setIsHosting] = useState(false);
+  const [formData, setFormData] = useState({ title: '', startTime: '', endTime: '' });
 
   // Precise clock for the industrial tech aesthetic
   useEffect(() => {
@@ -35,8 +39,8 @@ const ElectionStatus = () => {
           setElectionId(data.id || data._id);
           setStatus(data.status || 'Upcoming');
         } else {
-          // E.g., No election found in DB
-          setErrorMsg("SYSTEM ALERT // NO ELECTION RECORD DETECTED ON SERVER");
+          // No election found in DB
+          setStatus("None");
         }
       } catch (err) {
         setErrorMsg("NETWORK FAILURE // CANNOT CONNECT TO HOST");
@@ -46,7 +50,6 @@ const ElectionStatus = () => {
     };
     fetchElection();
   }, []);
-
 
   const updateStatus = async (newStatus) => {
     if (!electionId) {
@@ -75,23 +78,48 @@ const ElectionStatus = () => {
     }
   };
 
+  const handleHostSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/elections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(`CREATION FAILED // ${data.message ? data.message.toUpperCase() : 'UNKNOWN ERROR'}`);
+        return;
+      }
+      setElectionId(data.id || data._id);
+      setStatus(data.status);
+      setIsHosting(false);
+      setFormData({ title: '', startTime: '', endTime: '' });
+    } catch(err) {
+      setErrorMsg("NETWORK FAILURE // CANNOT CREATE ELECTION");
+    }
+  };
+
   const handleActivate = () => updateStatus("Active");
   const handleClose = () => updateStatus("Closed");
 
   // Bold text states to match the architectural banner sizes
   const getStatusText = () => {
     if (loading) return "INITIALIZING";
+    if (isHosting) return "DEPLOYING NEW PROTOCOL";
     switch(status) {
+      case "None": return "SYSTEM INACTIVE";
       case "Upcoming": return "AWAITING DEPLOYMENT";
       case "Active": return "SYSTEM LIVE";
       case "Closed": return "TERMINATED";
-      default: return "";
+      default: return "UNKNOWN STATE";
     }
   };
 
   return (
     <div className="es-wrapper">
-      <div className={`es-container status-${status}`}>
+      <div className={`es-container status-${status === 'None' || isHosting ? 'Upcoming' : status}`}>
         
         {/* Header Region */}
         <div className="es-header">
@@ -116,19 +144,65 @@ const ElectionStatus = () => {
           <div style={{
             background: 'var(--accent-closed)',
             color: '#fff',
-            padding: '1rem 2.5rem',
-            fontFamily: "'JetBrains Mono', monospace",
+            padding: '1.25rem 3rem',
+            fontFamily: "'Epilogue', sans-serif",
             fontWeight: 700,
             textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            borderBottom: '1px solid var(--border-color)',
-            animation: 'es-fade-in 0.3s forwards'
+            letterSpacing: '0.1em',
+            borderBottom: '2px solid var(--border-color)',
+            animation: 'deco-fade-in 0.4s forwards'
           }}>
             [!!] {errorMsg}
           </div>
         )}
 
+        {/* Form rendering when hosting */}
+        {isHosting && (
+          <form className="es-form" onSubmit={handleHostSubmit}>
+            <div className="es-form-group">
+              <label className="es-label">Protocol Title</label>
+              <input 
+                className="es-input" 
+                type="text" 
+                value={formData.title}
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                required 
+                placeholder="e.g., General Governance Election"
+              />
+            </div>
+            <div className="es-form-group">
+              <label className="es-label">Activation Timestamp</label>
+              <input 
+                className="es-input" 
+                type="datetime-local" 
+                value={formData.startTime}
+                onChange={e => setFormData({...formData, startTime: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="es-form-group">
+              <label className="es-label">Termination Timestamp</label>
+              <input 
+                className="es-input" 
+                type="datetime-local" 
+                value={formData.endTime}
+                onChange={e => setFormData({...formData, endTime: e.target.value})}
+                required 
+              />
+            </div>
+            <div style={{display: 'flex', gap: '1rem'}}>
+              <button type="submit" className="es-btn es-btn-activate">
+                [ Deploy Protocol ]
+              </button>
+              <button type="button" className="es-btn" onClick={() => setIsHosting(false)}>
+                [ Cancel ]
+              </button>
+            </div>
+          </form>
+        )}
+
         {/* Data readout grid with staggered reveals (animation-delay in CSS) */}
+        {!isHosting && (
         <div className="es-data-grid">
           <div className="es-data-cell">
             <div className="es-data-label">Protocol State</div>
@@ -145,9 +219,21 @@ const ElectionStatus = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Controller Footer */}
+        {!isHosting && (
         <div className="es-footer">
+          {(status === "None" || status === "Closed") && (
+             <button 
+                className={`es-btn es-btn-activate ${loading ? 'es-btn-disabled' : ''}`} 
+                disabled={loading} 
+                onClick={() => setIsHosting(true)}
+             >
+              [ Host New Election ]
+            </button>
+          )}
+
           {status === "Upcoming" && (
              <button 
                 className={`es-btn es-btn-activate ${loading ? 'es-btn-disabled' : ''}`} 
@@ -163,13 +249,8 @@ const ElectionStatus = () => {
               [ Halt Operations ]
             </button>
           )}
-
-          {status === "Closed" && (
-            <button className="es-btn es-btn-disabled" disabled>
-              [ Protocol Archived ]
-            </button>
-          )}
         </div>
+        )}
 
       </div>
     </div>
