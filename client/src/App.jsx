@@ -1,12 +1,43 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
+import AdminDashboard from './pages/AdminDashboard'
+
+// Protected route component
+function ProtectedRoute({ children, requiredRole }) {
+  const userRole = localStorage.getItem('userRole')
+  
+  if (userRole !== requiredRole) {
+    return <Navigate to="/login" replace />
+  }
+  
+  return children
+}
 
 function App() {
   const [count, setCount] = useState(0)
 
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<HomePage count={count} setCount={setCount} />} />
+      </Routes>
+    </Router>
+  )
+}
+
+function HomePage({ count, setCount }) {
   return (
     <>
       <section id="center">
@@ -119,3 +150,4 @@ function App() {
 }
 
 export default App
+
