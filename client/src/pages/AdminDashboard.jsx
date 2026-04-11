@@ -1170,6 +1170,13 @@ function AdminDashboard() {
               />
             </div>
 
+            <div
+              key={activeTab}
+              style={{
+                animation: 'fadeIn 0.3s ease',
+              }}
+            >
+
             {/* Elections List - Only show in Overview tab */}
             {activeTab === 'Overview' && (
             <div style={{ marginTop: '2.5rem', marginBottom: '2rem' }}>
@@ -1912,6 +1919,7 @@ function AdminDashboard() {
             </div>
               </div>
             )}
+            </div>
             </>
         )}
 
@@ -1928,6 +1936,67 @@ function AdminDashboard() {
           onSubmit={handleAddUser}
         />
       </main>
+
+      <footer
+        style={{
+          borderTop: '1px solid var(--ems-border)',
+          backgroundColor: 'var(--ems-surface)',
+          padding: '0.75rem 2rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            color: 'var(--ems-muted)',
+            letterSpacing: '0.03em',
+            textTransform: 'uppercase',
+          }}
+        >
+          EMS v1.0.0 · ELECTION MANAGEMENT SYSTEM
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.72rem',
+            color: '#3ddc84',
+            letterSpacing: '0.03em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#3ddc84',
+              animation: 'pulse 1.5s ease-in-out infinite',
+              boxShadow: '0 0 0 0 rgba(61, 220, 132, 0.5)',
+            }}
+          />
+          ALL SYSTEMS OPERATIONAL
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(61, 220, 132, 0.45); }
+          70% { box-shadow: 0 0 0 8px rgba(61, 220, 132, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(61, 220, 132, 0); }
+        }
+      `}</style>
     </div>
   )
 }
