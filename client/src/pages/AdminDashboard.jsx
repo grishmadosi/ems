@@ -1,5 +1,33 @@
 import { useState, useEffect } from 'react'
 
+// Status Badge Component
+function StatusBadge({ status }) {
+  const statusColors = {
+    ACTIVE: '#3ddc84',
+    PENDING: '#9c7db5',
+    COMPLETED: '#7b9fff',
+    CANCELLED: '#ff6b6b',
+  }
+
+  return (
+    <div
+      style={{
+        display: 'inline-block',
+        backgroundColor: statusColors[status] || '#5a5a7a',
+        color: 'var(--ems-bg)',
+        padding: '0.35rem 0.75rem',
+        borderRadius: '3px',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '11px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+      }}
+    >
+      {status}
+    </div>
+  )
+}
+
 // Stat Card Component
 function StatCard({ label, value, sub, accent }) {
   return (
@@ -119,6 +147,47 @@ function TickerBar() {
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('Overview')
   const [time, setTime] = useState(new Date())
+  const [showCreateElection, setShowCreateElection] = useState(false)
+  const [showAddUser, setShowAddUser] = useState(false)
+  const [hoveredRow, setHoveredRow] = useState(null)
+
+  // Mock Elections Data
+  const mockElections = [
+    {
+      id: 1,
+      name: 'Presidential Election 2024',
+      positions: 5,
+      endDate: '2024-11-15',
+      votes: 3420,
+      status: 'ACTIVE',
+    },
+    {
+      id: 2,
+      name: 'Board Member Selection',
+      positions: 3,
+      endDate: '2024-10-20',
+      votes: 1820,
+      status: 'ACTIVE',
+    },
+    {
+      id: 3,
+      name: 'Referendum 2024',
+      positions: 2,
+      endDate: '2024-12-01',
+      votes: 2232,
+      status: 'ACTIVE',
+    },
+    {
+      id: 4,
+      name: 'City Council Vote',
+      positions: 7,
+      endDate: '2024-09-30',
+      votes: 1970,
+      status: 'COMPLETED',
+    },
+  ]
+
+  const activeElections = mockElections.filter((e) => e.status === 'ACTIVE')
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -282,8 +351,265 @@ function AdminDashboard() {
           />
         </div>
 
-        <h2>Welcome to {activeTab}</h2>
-        <p>Select a tab to view different sections.</p>
+        {/* Elections List - Only show in Overview tab */}
+        {activeTab === 'Overview' && (
+          <>
+            <div style={{ marginTop: '2.5rem', marginBottom: '2rem' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.5rem',
+                  color: '#f3f4f6',
+                  marginBottom: '1rem',
+                }}
+              >
+                Active Elections
+              </h3>
+
+              {/* Elections Table */}
+              <div
+                style={{
+                  backgroundColor: 'var(--ems-surface)',
+                  border: '1px solid var(--ems-border)',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Table Header */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                    gap: '1rem',
+                    padding: '1rem',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    borderBottom: '1px solid var(--ems-border)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    color: 'var(--ems-muted)',
+                    fontWeight: 600,
+                  }}
+                >
+                  <div>Election Name</div>
+                  <div>Positions</div>
+                  <div>End Date</div>
+                  <div>Votes</div>
+                  <div>Status</div>
+                </div>
+
+                {/* Table Rows */}
+                {activeElections.map((election, idx) => (
+                  <div
+                    key={election.id}
+                    onMouseEnter={() => setHoveredRow(idx)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                      gap: '1rem',
+                      padding: '1rem',
+                      borderBottom:
+                        idx < activeElections.length - 1
+                          ? '1px solid var(--ems-border)'
+                          : 'none',
+                      backgroundColor:
+                        hoveredRow === idx
+                          ? 'rgba(245, 197, 66, 0.05)'
+                          : 'transparent',
+                      transition: 'background-color 0.2s ease',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ color: '#f3f4f6', fontSize: '0.95rem' }}>
+                      {election.name}
+                    </div>
+                    <div style={{ color: 'var(--ems-muted)', fontSize: '0.95rem' }}>
+                      {election.positions}
+                    </div>
+                    <div
+                      style={{
+                        color: 'var(--ems-muted)',
+                        fontSize: '0.95rem',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {new Date(election.endDate).toLocaleDateString()}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        color: 'var(--ems-amber)',
+                      }}
+                    >
+                      {election.votes.toLocaleString()}
+                    </div>
+                    <div>
+                      <StatusBadge status={election.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                marginTop: '2rem',
+              }}
+            >
+              {/* Primary Button - Create Election */}
+              <button
+                onClick={() => setShowCreateElection(true)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'var(--ems-amber)',
+                  color: 'var(--ems-bg)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s ease',
+                }}
+                onMouseEnter={(e) => (e.target.style.opacity = '0.9')}
+                onMouseLeave={(e) => (e.target.style.opacity = '1')}
+              >
+                Create Election
+              </button>
+
+              {/* Ghost Button - Add User */}
+              <button
+                onClick={() => setShowAddUser(true)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: 'var(--ems-amber)',
+                  border: '1px solid var(--ems-amber)',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(245, 197, 66, 0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                }}
+              >
+                Add User
+              </button>
+
+              {/* Ghost Button - View Results */}
+              <button
+                onClick={() => setActiveTab('Elections')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: 'var(--ems-amber)',
+                  border: '1px solid var(--ems-amber)',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(245, 197, 66, 0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                }}
+              >
+                View Results
+              </button>
+            </div>
+
+            {/* Modal Indicators */}
+            {showCreateElection && (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'var(--ems-surface)',
+                  border: '1px solid var(--ems-border)',
+                  padding: '2rem',
+                  borderRadius: '4px',
+                  zIndex: 2000,
+                  textAlign: 'center',
+                }}
+              >
+                <h2 style={{ color: '#f3f4f6', marginBottom: '1rem' }}>
+                  Create Election Modal
+                </h2>
+                <p style={{ color: 'var(--ems-muted)', marginBottom: '1rem' }}>
+                  This modal would open here.
+                </p>
+                <button
+                  onClick={() => setShowCreateElection(false)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'var(--ems-amber)',
+                    color: 'var(--ems-bg)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
+            {showAddUser && (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'var(--ems-surface)',
+                  border: '1px solid var(--ems-border)',
+                  padding: '2rem',
+                  borderRadius: '4px',
+                  zIndex: 2000,
+                  textAlign: 'center',
+                }}
+              >
+                <h2 style={{ color: '#f3f4f6', marginBottom: '1rem' }}>
+                  Add User Modal
+                </h2>
+                <p style={{ color: 'var(--ems-muted)', marginBottom: '1rem' }}>
+                  This modal would open here.
+                </p>
+                <button
+                  onClick={() => setShowAddUser(false)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'var(--ems-amber)',
+                    color: 'var(--ems-bg)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </main>
     </div>
   )
