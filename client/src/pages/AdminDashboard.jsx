@@ -1,5 +1,59 @@
 import { useState, useEffect } from 'react'
 
+// Ticker Bar Component
+function TickerBar() {
+  const [offset, setOffset] = useState(0)
+
+  const items = [
+    'SYSTEM ONLINE',
+    '3 ELECTIONS ACTIVE',
+    '9,472 VOTES RECORDED',
+    'ALL NODES SECURE',
+    'INTEGRITY CHECK: PASSED',
+  ]
+
+  const tickerText = items.join(' // ')
+  const repeatedText = tickerText + ' // ' + tickerText
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffset((prev) => {
+        // Reset when offset exceeds the length of one full text cycle
+        const containerWidth = repeatedText.length * 8 // approximate px per character
+        return (prev - 1) % containerWidth
+      })
+    }, 20)
+
+    return () => clearInterval(interval)
+  }, [repeatedText])
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        backgroundColor: 'var(--ems-amber)',
+        color: 'var(--ems-bg)',
+        overflow: 'hidden',
+        padding: '0.5rem 0',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <div
+        style={{
+          display: 'inline-block',
+          transform: `translateX(${offset}px)`,
+          transition: 'none',
+        }}
+      >
+        {repeatedText}
+      </div>
+    </div>
+  )
+}
+
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('Overview')
   const [time, setTime] = useState(new Date())
@@ -23,6 +77,9 @@ function AdminDashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Ticker Bar */}
+      <TickerBar />
+
       {/* Sticky Header */}
       <header
         style={{
