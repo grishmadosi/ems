@@ -49,9 +49,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// TODO: import and mount your route files here, e.g.:
-// const employeeRoutes = require('./routes/employees');
-// app.use('/api/employees', employeeRoutes);
+// Admin routes
+const adminRouter = require('./routes/admin');
+app.use('/api/admin', adminRouter);
 
 // 404 fallback
 app.use((_req, res) => {
