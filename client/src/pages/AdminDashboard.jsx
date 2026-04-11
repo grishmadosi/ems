@@ -1,5 +1,619 @@
 import { useState, useEffect } from 'react'
 
+// Reusable Modal Component
+function Modal({ title, onClose, children }) {
+  return (
+    <>
+      {/* Overlay - click outside closes modal */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          zIndex: 1999,
+        }}
+      />
+
+      {/* Modal Panel */}
+      <div
+        onClick={(e) => e.stopPropagation()} // Don't close when clicking inside modal
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'var(--ems-surface)',
+          borderTop: '3px solid var(--ems-amber)',
+          border: '1px solid var(--ems-border)',
+          borderTop: '3px solid var(--ems-amber)',
+          borderRadius: '4px',
+          zIndex: 2000,
+          minWidth: '500px',
+          maxWidth: '600px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '1.5rem',
+            borderBottom: '1px solid var(--ems-border)',
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: '#f3f4f6',
+              margin: 0,
+              textTransform: 'uppercase',
+            }}
+          >
+            {title}
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              color: 'var(--ems-muted)',
+              cursor: 'pointer',
+              padding: 0,
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.target.style.color = 'var(--ems-amber)')}
+            onMouseLeave={(e) => (e.target.style.color = 'var(--ems-muted)')}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: '1.5rem' }}>{children}</div>
+      </div>
+    </>
+  )
+}
+
+// Add User Modal
+function AddUserModal({ isOpen, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: 'VOTER',
+  })
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleSubmit = () => {
+    const newErrors = {}
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name required'
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name required'
+    if (!formData.email.trim()) newErrors.email = 'Email required'
+    if (!formData.password.trim()) newErrors.password = 'Password required'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    onSubmit(formData)
+    setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'VOTER' })
+    setErrors({})
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <Modal title="Add New User" onClose={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* First Name */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            First Name
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.firstName ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+            placeholder="John"
+          />
+          {errors.firstName && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.firstName}
+            </span>
+          )}
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Last Name
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.lastName ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+            placeholder="Doe"
+          />
+          {errors.lastName && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.lastName}
+            </span>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.email ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+            placeholder="john@example.com"
+          />
+          {errors.email && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.email}
+            </span>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.password ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+            placeholder="••••••••"
+          />
+          {errors.password && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.password}
+            </span>
+          )}
+        </div>
+
+        {/* Role Select */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Role
+          </label>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+          >
+            <option value="VOTER">Voter</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'var(--ems-amber)',
+              color: 'var(--ems-bg)',
+              border: 'none',
+              borderRadius: '4px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.target.style.opacity = '0.9')}
+            onMouseLeave={(e) => (e.target.style.opacity = '1')}
+          >
+            Create
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'transparent',
+              color: 'var(--ems-amber)',
+              border: '1px solid var(--ems-amber)',
+              borderRadius: '4px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(245, 197, 66, 0.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent'
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+// Create Election Modal
+function CreateElectionModal({ isOpen, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    startTime: '',
+    endTime: '',
+  })
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleSubmit = () => {
+    const newErrors = {}
+    if (!formData.name.trim()) newErrors.name = 'Election name required'
+    if (!formData.description.trim()) newErrors.description = 'Description required'
+    if (!formData.startTime) newErrors.startTime = 'Start time required'
+    if (!formData.endTime) newErrors.endTime = 'End time required'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    onSubmit(formData)
+    setFormData({ name: '', description: '', startTime: '', endTime: '' })
+    setErrors({})
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <Modal title="Create New Election" onClose={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Election Name */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Election Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.name ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+            placeholder="Presidential Election 2025"
+          />
+          {errors.name && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.name}
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Description
+          </label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.description ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+              minHeight: '100px',
+              resize: 'vertical',
+            }}
+            placeholder="Election details and description..."
+          />
+          {errors.description && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.description}
+            </span>
+          )}
+        </div>
+
+        {/* Start Time */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Start Time
+          </label>
+          <input
+            type="datetime-local"
+            name="startTime"
+            value={formData.startTime}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.startTime ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+          />
+          {errors.startTime && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.startTime}
+            </span>
+          )}
+        </div>
+
+        {/* End Time */}
+        <div>
+          <label
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85rem',
+              color: 'var(--ems-muted)',
+              display: 'block',
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            End Time
+          </label>
+          <input
+            type="datetime-local"
+            name="endTime"
+            value={formData.endTime}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: 'var(--ems-bg)',
+              border: errors.endTime ? '1px solid #ff6b6b' : '1px solid var(--ems-border)',
+              borderRadius: '3px',
+              color: '#f3f4f6',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.9rem',
+              boxSizing: 'border-box',
+            }}
+          />
+          {errors.endTime && (
+            <span style={{ color: '#ff6b6b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+              {errors.endTime}
+            </span>
+          )}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <button
+            onClick={handleSubmit}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'var(--ems-amber)',
+              color: 'var(--ems-bg)',
+              border: 'none',
+              borderRadius: '4px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.target.style.opacity = '0.9')}
+            onMouseLeave={(e) => (e.target.style.opacity = '1')}
+          >
+            Create
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'transparent',
+              color: 'var(--ems-amber)',
+              border: '1px solid var(--ems-amber)',
+              borderRadius: '4px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(245, 197, 66, 0.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent'
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 // Status Badge Component
 function StatusBadge({ status }) {
   const statusColors = {
@@ -206,6 +820,31 @@ function AdminDashboard() {
 
   const handleRemoveUser = (userId) => {
     setUsers(users.filter((user) => user.id !== userId))
+  }
+
+  const handleAddUser = (formData) => {
+    const newUser = {
+      id: Math.max(...users.map((u) => u.id), 0) + 1,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      role: formData.role,
+      joined: new Date().toISOString().split('T')[0],
+    }
+    setUsers([...users, newUser])
+    setShowAddUser(false)
+  }
+
+  const handleCreateElection = (formData) => {
+    const newElection = {
+      id: Math.max(...mockElections.map((e) => e.id), 0) + 1,
+      name: formData.name,
+      positions: 0,
+      endDate: formData.endTime.split('T')[0],
+      votes: 0,
+      status: 'UPCOMING',
+    }
+    setShowCreateElection(false)
   }
 
   // Mock Elections Data
@@ -622,79 +1261,18 @@ function AdminDashboard() {
             </div>
 
             {/* Modal Indicators */}
-            {showCreateElection && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'var(--ems-surface)',
-                  border: '1px solid var(--ems-border)',
-                  padding: '2rem',
-                  borderRadius: '4px',
-                  zIndex: 2000,
-                  textAlign: 'center',
-                }}
-              >
-                <h2 style={{ color: '#f3f4f6', marginBottom: '1rem' }}>
-                  Create Election Modal
-                </h2>
-                <p style={{ color: 'var(--ems-muted)', marginBottom: '1rem' }}>
-                  This modal would open here.
-                </p>
-                <button
-                  onClick={() => setShowCreateElection(false)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: 'var(--ems-amber)',
-                    color: 'var(--ems-bg)',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-            )}
+            {/* Modal Components */}
+            <CreateElectionModal
+              isOpen={showCreateElection}
+              onClose={() => setShowCreateElection(false)}
+              onSubmit={handleCreateElection}
+            />
 
-            {showAddUser && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'var(--ems-surface)',
-                  border: '1px solid var(--ems-border)',
-                  padding: '2rem',
-                  borderRadius: '4px',
-                  zIndex: 2000,
-                  textAlign: 'center',
-                }}
-              >
-                <h2 style={{ color: '#f3f4f6', marginBottom: '1rem' }}>
-                  Add User Modal
-                </h2>
-                <p style={{ color: 'var(--ems-muted)', marginBottom: '1rem' }}>
-                  This modal would open here.
-                </p>
-                <button
-                  onClick={() => setShowAddUser(false)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: 'var(--ems-amber)',
-                    color: 'var(--ems-bg)',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-            )}
+            <AddUserModal
+              isOpen={showAddUser}
+              onClose={() => setShowAddUser(false)}
+              onSubmit={handleAddUser}
+            />
           </>
         )}
 
