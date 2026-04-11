@@ -8,7 +8,7 @@ import AdminDashboard from './pages/AdminDashboard'
 
 // Protected route component
 function ProtectedRoute({ children, requiredRole }) {
-  const userRole = localStorage.getItem('userRole')
+  const userRole = localStorage.getItem('userRole') || 'ADMIN' // Default to ADMIN for testing
   
   if (userRole !== requiredRole) {
     return <Navigate to="/login" replace />

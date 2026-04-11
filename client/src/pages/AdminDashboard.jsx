@@ -1,4 +1,86 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
+
+// API Base URL - adjust if needed
+const API_BASE_URL = 'http://localhost:3000/api' // Change to your backend URL
+
+// Axios instance with JWT token
+const createAxiosInstance = () => {
+  const token = localStorage.getItem('ems_token')
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+// Loading Spinner Component
+function LoadingSpinner() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '3rem',
+      }}
+    >
+      <div
+        style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid var(--ems-border)',
+          borderTop: '3px solid var(--ems-amber)',
+          borderRadius: '50%',
+          animation: 'spin 0.6s linear infinite',
+        }}
+      />
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// Error Banner Component
+function ErrorBanner({ message, onClose }) {
+  return (
+    <div
+      style={{
+        backgroundColor: 'rgba(255, 107, 107, 0.15)',
+        border: '1px solid #ff6b6b',
+        borderRadius: '4px',
+        padding: '1rem',
+        marginBottom: '1rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+    >
+      <div style={{ color: '#ff6b6b', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
+        {message}
+      </div>
+      <button
+        onClick={onClose}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: '#ff6b6b',
+          cursor: 'pointer',
+          fontSize: '1.2rem',
+        }}
+      >
+        ×
+      </button>
+    </div>
+  )
+}
+
 
 // Reusable Modal Component
 function Modal({ title, onClose, children }) {
@@ -767,153 +849,154 @@ function AdminDashboard() {
   const [showAddUser, setShowAddUser] = useState(false)
   const [hoveredRow, setHoveredRow] = useState(null)
   const [filterStatus, setFilterStatus] = useState('ALL')
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      email: 'alice.johnson@ems.gov',
-      role: 'ADMIN',
-      joined: '2024-01-15',
-    },
-    {
-      id: 2,
-      firstName: 'Bob',
-      lastName: 'Smith',
-      email: 'bob.smith@ems.gov',
-      role: 'VOTER',
-      joined: '2024-02-20',
-    },
-    {
-      id: 3,
-      firstName: 'Carol',
-      lastName: 'Williams',
-      email: 'carol.williams@ems.gov',
-      role: 'ADMIN',
-      joined: '2024-01-10',
-    },
-    {
-      id: 4,
-      firstName: 'David',
-      lastName: 'Brown',
-      email: 'david.brown@ems.gov',
-      role: 'VOTER',
-      joined: '2024-03-05',
-    },
-    {
-      id: 5,
-      firstName: 'Emma',
-      lastName: 'Davis',
-      email: 'emma.davis@ems.gov',
-      role: 'VOTER',
-      joined: '2024-02-28',
-    },
-    {
-      id: 6,
-      firstName: 'Frank',
-      lastName: 'Miller',
-      email: 'frank.miller@ems.gov',
-      role: 'ADMIN',
-      joined: '2024-01-20',
-    },
-  ])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [users, setUsers] = useState([])
+  const [elections, setElections] = useState([])
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeElections: 0,
+    totalVotesCast: 0,
+  })
 
-  const handleRemoveUser = (userId) => {
-    setUsers(users.filter((user) => user.id !== userId))
-  }
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      setError(null)
+      const api = createAxiosInstance()
 
-  const handleAddUser = (formData) => {
-    const newUser = {
-      id: Math.max(...users.map((u) => u.id), 0) + 1,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      role: formData.role,
-      joined: new Date().toISOString().split('T')[0],
+      try {
+        // Fetch users
+        const usersResponse = await api.get('/admin/users')
+        const usersData = Array.isArray(usersResponse.data) ? usersResponse.data : usersResponse.data.data || []
+        setUsers(usersData)
+
+        // Fetch elections/polls
+        const electionsResponse = await api.get('/polls')
+        const electionsData = Array.isArray(electionsResponse.data)
+          ? electionsResponse.data
+          : electionsResponse.data.data || []
+        setElections(electionsData)
+
+        // Fetch stats
+        const statsResponse = await api.get('/admin/stats')
+        setStats(
+          statsResponse.data.data || {
+            totalUsers: usersData.length,
+            activeElections: electionsData.filter((e) => e.status === 'ACTIVE').length,
+            totalVotesCast: 0,
+          }
+        )
+      } catch (err) {
+        console.error('API Error:', err)
+        setError(
+          err.response?.data?.message || 'Failed to load data. Using mock data.'
+        )
+        // Fallback to mock data if API fails
+        setUsers([
+          {
+            id: 1,
+            firstName: 'Alice',
+            lastName: 'Johnson',
+            email: 'alice@ems.gov',
+            role: 'ADMIN',
+            joined: '2024-01-15',
+          },
+          {
+            id: 2,
+            firstName: 'Bob',
+            lastName: 'Smith',
+            email: 'bob@ems.gov',
+            role: 'VOTER',
+            joined: '2024-02-20',
+          },
+        ])
+        setElections([
+          {
+            id: 1,
+            name: 'Presidential Election 2024',
+            positions: 5,
+            endDate: '2024-11-15',
+            votes: 3420,
+            status: 'ACTIVE',
+          },
+          {
+            id: 2,
+            name: 'Board Member Selection',
+            positions: 3,
+            endDate: '2024-10-20',
+            votes: 1820,
+            status: 'ACTIVE',
+          },
+        ])
+      } finally {
+        setLoading(false)
+      }
     }
-    setUsers([...users, newUser])
-    setShowAddUser(false)
-  }
 
-  const handleCreateElection = (formData) => {
-    const newElection = {
-      id: Math.max(...mockElections.map((e) => e.id), 0) + 1,
-      name: formData.name,
-      positions: 0,
-      endDate: formData.endTime.split('T')[0],
-      votes: 0,
-      status: 'UPCOMING',
+    fetchData()
+  }, [])
+
+  // Time update effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleRemoveUser = async (userId) => {
+    try {
+      const api = createAxiosInstance()
+      await api.delete(`/admin/users/${userId}`)
+      setUsers(users.filter((user) => user.id !== userId))
+    } catch (err) {
+      setError('Failed to remove user: ' + (err.response?.data?.message || err.message))
     }
-    setShowCreateElection(false)
   }
 
-  // Mock Elections Data
-  const mockElections = [
-    {
-      id: 1,
-      name: 'Presidential Election 2024',
-      positions: 5,
-      endDate: '2024-11-15',
-      votes: 3420,
-      status: 'ACTIVE',
-    },
-    {
-      id: 2,
-      name: 'Board Member Selection',
-      positions: 3,
-      endDate: '2024-10-20',
-      votes: 1820,
-      status: 'ACTIVE',
-    },
-    {
-      id: 3,
-      name: 'Referendum 2024',
-      positions: 2,
-      endDate: '2024-12-01',
-      votes: 2232,
-      status: 'ACTIVE',
-    },
-    {
-      id: 4,
-      name: 'City Council Vote',
-      positions: 7,
-      endDate: '2024-09-30',
-      votes: 1970,
-      status: 'ENDED',
-    },
-    {
-      id: 5,
-      name: 'School Board Election',
-      positions: 4,
-      endDate: '2024-11-30',
-      votes: 892,
-      status: 'UPCOMING',
-    },
-    {
-      id: 6,
-      name: 'State Proposition Vote',
-      positions: 1,
-      endDate: '2025-01-10',
-      votes: 0,
-      status: 'UPCOMING',
-    },
-    {
-      id: 7,
-      name: 'Mayor Election 2023',
-      positions: 1,
-      endDate: '2023-08-15',
-      votes: 5420,
-      status: 'ENDED',
-    },
-  ]
+  const handleAddUser = async (formData) => {
+    try {
+      const api = createAxiosInstance()
+      const response = await api.post('/admin/users', {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      })
+      const newUser = response.data.data || response.data
+      setUsers([...users, newUser])
+      setShowAddUser(false)
+    } catch (err) {
+      setError('Failed to add user: ' + (err.response?.data?.message || err.message))
+    }
+  }
 
-  const activeElections = mockElections.filter((e) => e.status === 'ACTIVE')
+  const handleCreateElection = async (formData) => {
+    try {
+      const api = createAxiosInstance()
+      const response = await api.post('/polls', {
+        poll_name: formData.name,
+        description: formData.description,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+      })
+      const newElection = response.data.data || response.data
+      setElections([...elections, newElection])
+      setShowCreateElection(false)
+    } catch (err) {
+      setError(
+        'Failed to create election: ' + (err.response?.data?.message || err.message)
+      )
+    }
+  }
 
-  // Filter elections based on selected filter
+  const activeElections = elections.filter((e) => e.status === 'ACTIVE')
   const filteredElections =
     filterStatus === 'ALL'
-      ? mockElections
-      : mockElections.filter((e) => e.status === filterStatus)
+      ? elections
+      : elections.filter((e) => e.status === filterStatus)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1042,44 +1125,53 @@ function AdminDashboard() {
 
       {/* Content Area */}
       <main style={{ flex: 1, padding: '2rem' }}>
-        {/* Stats Row */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1.5rem',
-            marginBottom: '2rem',
-            width: '100%',
-          }}
-        >
-          <StatCard
-            label="Registered Users"
-            value="1284"
-            sub="↑ 24 this week"
-            accent="var(--ems-amber)"
-          />
-          <StatCard
-            label="Active Elections"
-            value="3"
-            sub="3 in progress"
-            accent="#3ddc84"
-          />
-          <StatCard
-            label="Votes Cast"
-            value="9472"
-            sub="All time"
-            accent="#7b9fff"
-          />
-          <StatCard
-            label="Pending Elections"
-            value="2"
-            sub="Not yet started"
-            accent="#9c7db5"
-          />
-        </div>
+        {/* Error Banner */}
+        {error && (
+          <ErrorBanner message={error} onClose={() => setError(null)} />
+        )}
 
-        {/* Elections List - Only show in Overview tab */}
-        {activeTab === 'Overview' && (
+        {/* Loading State */}
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
           <>
+            {/* Stats Row */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '1.5rem',
+                marginBottom: '2rem',
+                width: '100%',
+              }}
+            >
+              <StatCard
+                label="Registered Users"
+                value={stats.totalUsers || users.length}
+                sub="↑ 24 this week"
+                accent="var(--ems-amber)"
+              />
+              <StatCard
+                label="Active Elections"
+                value={stats.activeElections || activeElections.length}
+                sub="3 in progress"
+                accent="#3ddc84"
+              />
+              <StatCard
+                label="Votes Cast"
+                value={stats.totalVotesCast || 0}
+                sub="All time"
+                accent="#7b9fff"
+              />
+              <StatCard
+                label="Pending Elections"
+                value={elections.filter((e) => e.status === 'UPCOMING').length}
+                sub="Not yet started"
+                accent="#9c7db5"
+              />
+            </div>
+
+            {/* Elections List - Only show in Overview tab */}
+            {activeTab === 'Overview' && (
             <div style={{ marginTop: '2.5rem', marginBottom: '2rem' }}>
               <h3
                 style={{
@@ -1259,53 +1351,39 @@ function AdminDashboard() {
                 View Results
               </button>
             </div>
+            </>
+            )}
 
-            {/* Modal Indicators */}
-            {/* Modal Components */}
-            <CreateElectionModal
-              isOpen={showCreateElection}
-              onClose={() => setShowCreateElection(false)}
-              onSubmit={handleCreateElection}
-            />
-
-            <AddUserModal
-              isOpen={showAddUser}
-              onClose={() => setShowAddUser(false)}
-              onSubmit={handleAddUser}
-            />
-          </>
-        )}
-
-        {/* Elections Tab Content */}
-        {activeTab === 'Elections' && (
-          <div>
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '1.5rem',
-                color: '#f3f4f6',
-                marginBottom: '1.5rem',
-              }}
-            >
-              All Elections
-            </h3>
-
-            {/* Filter Pills */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.75rem',
-                marginBottom: '2rem',
-              }}
-            >
-              {['ALL', 'ACTIVE', 'UPCOMING', 'ENDED'].map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setFilterStatus(filter)}
+            {/* Elections Tab Content */}
+            {activeTab === 'Elections' && (
+              <div>
+                <h3
                   style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor:
-                      filterStatus === filter ? 'var(--ems-amber)' : 'transparent',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '1.5rem',
+                    color: '#f3f4f6',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  All Elections
+                </h3>
+
+                {/* Filter Pills */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    marginBottom: '2rem',
+                  }}
+                >
+                  {['ALL', 'ACTIVE', 'UPCOMING', 'ENDED'].map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setFilterStatus(filter)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor:
+                          filterStatus === filter ? 'var(--ems-amber)' : 'transparent',
                     color:
                       filterStatus === filter
                         ? 'var(--ems-bg)'
@@ -1552,24 +1630,24 @@ function AdminDashboard() {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+              </div>
+            )}
 
-        {/* Users Tab Content */}
-        {activeTab === 'Users' && (
-          <div>
-            {/* Header with User Count and Add User Button */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '2rem',
-              }}
-            >
+            {/* Users Tab Content */}
+            {activeTab === 'Users' && (
               <div>
-                <h3
+                {/* Header with User Count and Add User Button */}
+                <div
                   style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '2rem',
+                  }}
+                >
+                  <div>
+                    <h3
+                      style={{
                     fontFamily: 'var(--font-display)',
                     fontSize: '1.5rem',
                     color: '#f3f4f6',
@@ -1832,8 +1910,23 @@ function AdminDashboard() {
                 </tbody>
               </table>
             </div>
-          </div>
+              </div>
+            )}
+            </>
         )}
+
+        {/* Modal Components */}
+        <CreateElectionModal
+          isOpen={showCreateElection}
+          onClose={() => setShowCreateElection(false)}
+          onSubmit={handleCreateElection}
+        />
+
+        <AddUserModal
+          isOpen={showAddUser}
+          onClose={() => setShowAddUser(false)}
+          onSubmit={handleAddUser}
+        />
       </main>
     </div>
   )
