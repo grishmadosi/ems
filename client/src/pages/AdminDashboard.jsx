@@ -1,5 +1,67 @@
 import { useState, useEffect } from 'react'
 
+// Stat Card Component
+function StatCard({ label, value, sub, accent }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        backgroundColor: 'var(--ems-surface)',
+        border: `3px solid ${accent}`,
+        borderTop: `3px solid ${accent}`,
+        borderRight: '1px solid var(--ems-border)',
+        borderBottom: '1px solid var(--ems-border)',
+        borderLeft: '1px solid var(--ems-border)',
+        padding: '1.5rem',
+        borderRadius: '4px',
+        minHeight: '140px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+      }}
+    >
+      {/* Label */}
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          color: 'var(--ems-muted)',
+          fontWeight: 600,
+          letterSpacing: '0.5px',
+        }}
+      >
+        {label}
+      </div>
+
+      {/* Value */}
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '38px',
+          fontWeight: 700,
+          color: '#f3f4f6',
+          lineHeight: '1.1',
+        }}
+      >
+        {value}
+      </div>
+
+      {/* Sub */}
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: 'var(--ems-muted)',
+          marginTop: 'auto',
+        }}
+      >
+        {sub}
+      </div>
+    </div>
+  )
+}
+
 // Ticker Bar Component
 function TickerBar() {
   const [offset, setOffset] = useState(0)
@@ -185,6 +247,41 @@ function AdminDashboard() {
 
       {/* Content Area */}
       <main style={{ flex: 1, padding: '2rem' }}>
+        {/* Stats Row */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '1.5rem',
+            marginBottom: '2rem',
+            width: '100%',
+          }}
+        >
+          <StatCard
+            label="Registered Users"
+            value="1284"
+            sub="↑ 24 this week"
+            accent="var(--ems-amber)"
+          />
+          <StatCard
+            label="Active Elections"
+            value="3"
+            sub="3 in progress"
+            accent="#3ddc84"
+          />
+          <StatCard
+            label="Votes Cast"
+            value="9472"
+            sub="All time"
+            accent="#7b9fff"
+          />
+          <StatCard
+            label="Pending Elections"
+            value="2"
+            sub="Not yet started"
+            accent="#9c7db5"
+          />
+        </div>
+
         <h2>Welcome to {activeTab}</h2>
         <p>Select a tab to view different sections.</p>
       </main>
