@@ -18,6 +18,11 @@ const Election = sequelize.define('Election', {
   endTime: {
     type: DataTypes.DATE,
     allowNull: false
+  },
+  positions: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+    allowNull: false
   }
 }, {
   timestamps: true

@@ -2,34 +2,36 @@ const express = require('express');
 const router = express.Router();
 const Election = require('../models/Election');
 
-// 1. Get current election
+// 1. Get ALL elections (ordered newest first)
 router.get('/', async (req, res) => {
   try {
-    // Assuming there is typically one primary active/recent election
-    const election = await Election.findOne({ order: [['createdAt', 'DESC']] });
-    if (!election) {
-      return res.status(404).json({ message: 'No election found' });
-    }
-    res.json(election);
+    const elections = await Election.findAll({ order: [['createdAt', 'DESC']] });
+    res.json(elections);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// 2. Create a new election (Utility to set up constraints)
+// 2. Create a new election with positions
 router.post('/', async (req, res) => {
   try {
-    const { title, startTime, endTime } = req.body;
+    const { title, startTime, endTime, positions } = req.body;
     
     // Validate time constraints
     if (new Date(startTime) >= new Date(endTime)) {
       return res.status(400).json({ message: 'endTime must be after startTime' });
     }
 
+    // Validate positions
+    if (!positions || !Array.isArray(positions) || positions.length === 0) {
+      return res.status(400).json({ message: 'At least one position is required' });
+    }
+
     const savedElection = await Election.create({
       title,
       startTime,
       endTime,
+      positions,
       status: 'Upcoming'
     });
 
