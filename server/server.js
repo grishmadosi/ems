@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
@@ -14,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // CORS – allow Vite dev server (port 5173) and production build
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
   process.env.CLIENT_URL,
 ].filter(Boolean);
@@ -33,13 +33,20 @@ app.use(
 );
 
 // ── Database ──────────────────────────────────────────────────────────────────
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ems';
+const sequelize = require('./config/db');
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log('✅  MongoDB connected'))
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('✅  PostgreSQL connected');
+    // In development gently alter tables to match models
+    return sequelize.sync({ alter: true });
+  })
+  .then(() => {
+    console.log('✅  PostgreSQL models synchronized');
+  })
   .catch((err) => {
-    console.error('❌  MongoDB connection error:', err.message);
+    console.error('❌  PostgreSQL connection/sync error:', err.message);
     process.exit(1);
   });
 
@@ -50,8 +57,8 @@ app.get('/api/health', (_req, res) => {
 });
 
 // TODO: import and mount your route files here, e.g.:
-// const employeeRoutes = require('./routes/employees');
-// app.use('/api/employees', employeeRoutes);
+const electionRoutes = require('./routes/electionRoutes');
+app.use('/api/elections', electionRoutes);
 
 // 404 fallback
 app.use((_req, res) => {
