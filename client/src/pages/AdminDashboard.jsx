@@ -150,6 +150,7 @@ function AdminDashboard() {
   const [showCreateElection, setShowCreateElection] = useState(false)
   const [showAddUser, setShowAddUser] = useState(false)
   const [hoveredRow, setHoveredRow] = useState(null)
+  const [filterStatus, setFilterStatus] = useState('ALL')
 
   // Mock Elections Data
   const mockElections = [
@@ -183,11 +184,41 @@ function AdminDashboard() {
       positions: 7,
       endDate: '2024-09-30',
       votes: 1970,
-      status: 'COMPLETED',
+      status: 'ENDED',
+    },
+    {
+      id: 5,
+      name: 'School Board Election',
+      positions: 4,
+      endDate: '2024-11-30',
+      votes: 892,
+      status: 'UPCOMING',
+    },
+    {
+      id: 6,
+      name: 'State Proposition Vote',
+      positions: 1,
+      endDate: '2025-01-10',
+      votes: 0,
+      status: 'UPCOMING',
+    },
+    {
+      id: 7,
+      name: 'Mayor Election 2023',
+      positions: 1,
+      endDate: '2023-08-15',
+      votes: 5420,
+      status: 'ENDED',
     },
   ]
 
   const activeElections = mockElections.filter((e) => e.status === 'ACTIVE')
+
+  // Filter elections based on selected filter
+  const filteredElections =
+    filterStatus === 'ALL'
+      ? mockElections
+      : mockElections.filter((e) => e.status === filterStatus)
 
   useEffect(() => {
     const interval = setInterval(() => {
