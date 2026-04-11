@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 function StatusBadge({ status }) {
   const statusColors = {
     ACTIVE: '#3ddc84',
+    UPCOMING: 'var(--ems-amber)',
+    ENDED: '#9c7db5',
     PENDING: '#9c7db5',
     COMPLETED: '#7b9fff',
     CANCELLED: '#ff6b6b',
@@ -151,6 +153,60 @@ function AdminDashboard() {
   const [showAddUser, setShowAddUser] = useState(false)
   const [hoveredRow, setHoveredRow] = useState(null)
   const [filterStatus, setFilterStatus] = useState('ALL')
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      email: 'alice.johnson@ems.gov',
+      role: 'ADMIN',
+      joined: '2024-01-15',
+    },
+    {
+      id: 2,
+      firstName: 'Bob',
+      lastName: 'Smith',
+      email: 'bob.smith@ems.gov',
+      role: 'VOTER',
+      joined: '2024-02-20',
+    },
+    {
+      id: 3,
+      firstName: 'Carol',
+      lastName: 'Williams',
+      email: 'carol.williams@ems.gov',
+      role: 'ADMIN',
+      joined: '2024-01-10',
+    },
+    {
+      id: 4,
+      firstName: 'David',
+      lastName: 'Brown',
+      email: 'david.brown@ems.gov',
+      role: 'VOTER',
+      joined: '2024-03-05',
+    },
+    {
+      id: 5,
+      firstName: 'Emma',
+      lastName: 'Davis',
+      email: 'emma.davis@ems.gov',
+      role: 'VOTER',
+      joined: '2024-02-28',
+    },
+    {
+      id: 6,
+      firstName: 'Frank',
+      lastName: 'Miller',
+      email: 'frank.miller@ems.gov',
+      role: 'ADMIN',
+      joined: '2024-01-20',
+    },
+  ])
+
+  const handleRemoveUser = (userId) => {
+    setUsers(users.filter((user) => user.id !== userId))
+  }
 
   // Mock Elections Data
   const mockElections = [
@@ -640,6 +696,565 @@ function AdminDashboard() {
               </div>
             )}
           </>
+        )}
+
+        {/* Elections Tab Content */}
+        {activeTab === 'Elections' && (
+          <div>
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.5rem',
+                color: '#f3f4f6',
+                marginBottom: '1.5rem',
+              }}
+            >
+              All Elections
+            </h3>
+
+            {/* Filter Pills */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                marginBottom: '2rem',
+              }}
+            >
+              {['ALL', 'ACTIVE', 'UPCOMING', 'ENDED'].map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setFilterStatus(filter)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor:
+                      filterStatus === filter ? 'var(--ems-amber)' : 'transparent',
+                    color:
+                      filterStatus === filter
+                        ? 'var(--ems-bg)'
+                        : 'var(--ems-amber)',
+                    border:
+                      filterStatus === filter
+                        ? 'none'
+                        : '1px solid var(--ems-amber)',
+                    borderRadius: '20px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (filterStatus !== filter) {
+                      e.target.style.backgroundColor = 'rgba(245, 197, 66, 0.1)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (filterStatus !== filter) {
+                      e.target.style.backgroundColor = 'transparent'
+                    }
+                  }}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            {/* Elections Table */}
+            <div
+              style={{
+                backgroundColor: 'var(--ems-surface)',
+                border: '1px solid var(--ems-border)',
+                borderRadius: '4px',
+                overflow: 'hidden',
+              }}
+            >
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                      borderBottom: '1px solid var(--ems-border)',
+                    }}
+                  >
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Election Name
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Status
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Positions
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Votes
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      End Date
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredElections.map((election, idx) => (
+                    <tr
+                      key={election.id}
+                      style={{
+                        backgroundColor:
+                          idx % 2 === 0
+                            ? 'var(--ems-bg)'
+                            : 'var(--ems-surface)',
+                        borderBottom: '1px solid var(--ems-border)',
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: '1rem',
+                          color: '#f3f4f6',
+                          fontSize: '0.95rem',
+                        }}
+                      >
+                        {election.name}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <StatusBadge status={election.status} />
+                      </td>
+                      <td
+                        style={{
+                          padding: '1rem',
+                          textAlign: 'center',
+                          color: 'var(--ems-muted)',
+                          fontSize: '0.95rem',
+                        }}
+                      >
+                        {election.positions}
+                      </td>
+                      <td
+                        style={{
+                          padding: '1rem',
+                          textAlign: 'center',
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          color: 'var(--ems-amber)',
+                        }}
+                      >
+                        {election.votes.toLocaleString()}
+                      </td>
+                      <td
+                        style={{
+                          padding: '1rem',
+                          textAlign: 'center',
+                          color: 'var(--ems-muted)',
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        {new Date(election.endDate).toLocaleDateString()}
+                      </td>
+                      <td
+                        style={{
+                          padding: '1rem',
+                          textAlign: 'center',
+                          display: 'flex',
+                          gap: '0.5rem',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {/* Results Button */}
+                        <button
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            backgroundColor: 'transparent',
+                            color: '#7b9fff',
+                            border: '1px solid #7b9fff',
+                            borderRadius: '3px',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(123, 159, 255, 0.1)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent'
+                          }}
+                        >
+                          Results
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            backgroundColor: 'transparent',
+                            color: '#9c7db5',
+                            border: '1px solid #9c7db5',
+                            borderRadius: '3px',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(156, 125, 181, 0.1)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent'
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Users Tab Content */}
+        {activeTab === 'Users' && (
+          <div>
+            {/* Header with User Count and Add User Button */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem',
+              }}
+            >
+              <div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '1.5rem',
+                    color: '#f3f4f6',
+                    margin: '0 0 0.5rem 0',
+                  }}
+                >
+                  System Users
+                </h3>
+                <p
+                  style={{
+                    color: 'var(--ems-muted)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.85rem',
+                    margin: 0,
+                  }}
+                >
+                  Total Users: {users.length}
+                </p>
+              </div>
+
+              {/* Add User Button */}
+              <button
+                onClick={() => setShowAddUser(true)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'var(--ems-amber)',
+                  color: 'var(--ems-bg)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s ease',
+                }}
+                onMouseEnter={(e) => (e.target.style.opacity = '0.9')}
+                onMouseLeave={(e) => (e.target.style.opacity = '1')}
+              >
+                + Add User
+              </button>
+            </div>
+
+            {/* Users Table */}
+            <div
+              style={{
+                backgroundColor: 'var(--ems-surface)',
+                border: '1px solid var(--ems-border)',
+                borderRadius: '4px',
+                overflow: 'hidden',
+              }}
+            >
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                      borderBottom: '1px solid var(--ems-border)',
+                    }}
+                  >
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      User
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Email
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Role
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'left',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Joined
+                    </th>
+                    <th
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        color: 'var(--ems-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user, idx) => {
+                    const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                    return (
+                      <tr
+                        key={user.id}
+                        style={{
+                          backgroundColor:
+                            idx % 2 === 0
+                              ? 'var(--ems-bg)'
+                              : 'var(--ems-surface)',
+                          borderBottom: '1px solid var(--ems-border)',
+                        }}
+                      >
+                        {/* User with Avatar */}
+                        <td
+                          style={{
+                            padding: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          {/* Avatar Circle */}
+                          <div
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              backgroundColor: 'var(--ems-surface)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#7b9fff',
+                              border: '1px solid var(--ems-border)',
+                            }}
+                          >
+                            {initials}
+                          </div>
+                          <div style={{ color: '#f3f4f6' }}>
+                            {user.firstName} {user.lastName}
+                          </div>
+                        </td>
+
+                        {/* Email */}
+                        <td
+                          style={{
+                            padding: '1rem',
+                            color: 'var(--ems-muted)',
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          {user.email}
+                        </td>
+
+                        {/* Role Badge */}
+                        <td style={{ padding: '1rem' }}>
+                          <div
+                            style={{
+                              display: 'inline-block',
+                              backgroundColor:
+                                user.role === 'ADMIN'
+                                  ? 'rgba(156, 125, 181, 0.2)'
+                                  : 'rgba(61, 220, 132, 0.2)',
+                              color:
+                                user.role === 'ADMIN'
+                                  ? '#9c7db5'
+                                  : '#3ddc84',
+                              border:
+                                user.role === 'ADMIN'
+                                  ? '1px solid #9c7db5'
+                                  : '1px solid #3ddc84',
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '3px',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '9px',
+                              fontWeight: 600,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {user.role}
+                          </div>
+                        </td>
+
+                        {/* Joined Date */}
+                        <td
+                          style={{
+                            padding: '1rem',
+                            color: 'var(--ems-muted)',
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          {new Date(user.joined).toLocaleDateString()}
+                        </td>
+
+                        {/* Remove Button */}
+                        <td
+                          style={{
+                            padding: '1rem',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <button
+                            onClick={() => handleRemoveUser(user.id)}
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              backgroundColor: 'transparent',
+                              color: '#ff6b6b',
+                              border: '1px solid #ff6b6b',
+                              borderRadius: '3px',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 107, 107, 0.1)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'transparent'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </main>
     </div>
